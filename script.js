@@ -3,12 +3,10 @@
  */
 var app = angular.module('myTodoList', ['ngAnimate', 'ngSanitize', 'ui.bootstrap', 'firebase']);
 
-app.controller('mainController', function (myFirebase,$firebaseObject,Todos ) {
+app.controller('mainController', function (myFirebase) {
     var mc = this;
     this.myArray = [];
     this.statusOptions = ['Not Started','In-Progress','Complete'];
-
-    this.todos = Todos;
 
     this.init = function() {
         var promise = myFirebase.readFirebase();
@@ -48,12 +46,4 @@ app.controller('mainController', function (myFirebase,$firebaseObject,Todos ) {
     }
 
     this.init();
-});
-
-app.constant('FBURL', 'https://c11todolist.firebaseapp.com');
-
-app.service('Ref', ['FBURL', Firebase]);
-
-app.factory('Todos', function(Ref, $firebase) {
-    return $firebase(Ref).$asArray();
 });

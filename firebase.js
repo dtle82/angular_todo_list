@@ -1,7 +1,7 @@
 /**
  * Created by danh on 11/23/16.
  */
-app.service('myFirebase', function($q,$firebaseObject) {
+app.service('myFirebase', function($q) {
     var self = this;
     // Initialize Firebase
     this.config = {
@@ -14,9 +14,6 @@ app.service('myFirebase', function($q,$firebaseObject) {
     firebase.initializeApp(this.config);
 
     this.fbRef = firebase.database();
-
-
-    self.users = $firebaseObject(self.fbRef.ref('tasks'));
 
     this.fbArray = [];
 
@@ -35,7 +32,6 @@ app.service('myFirebase', function($q,$firebaseObject) {
                 console.log("updated!",newObj);
                 self.fbArray.push(newObj);
             }
-            console.log(self.users.length);
             defer.resolve(self.fbArray);
         });
         return defer.promise;
