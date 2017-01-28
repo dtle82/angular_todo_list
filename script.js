@@ -1,100 +1,59 @@
 /**
  * Created by danh on 11/22/16.
  */
-var app = angular.module('myTodoList', ['ngAnimate', 'ngSanitize', 'ui.bootstrap']);
+var app = angular.module('myTodoList', ['ngAnimate', 'ngSanitize', 'ui.bootstrap', 'firebase']);
 
-angular.module('myTodoList').controller('DatepickerPopupDemoCtrl', function ($scope) {
-    $scope.today = function() {
-        $scope.dt = new Date();
-    };
-    $scope.today();
+app.controller('mainController', function (myFirebase,$firebaseObject,Todos ) {
+    var mc = this;
+    this.myArray = [];
+    this.statusOptions = ['Not Started','In-Progress','Complete'];
 
-    $scope.clear = function() {
-        $scope.dt = null;
-    };
+    this.todos = Todos;
 
-    $scope.inlineOptions = {
-        customClass: getDayClass,
-        minDate: new Date(),
-        showWeeks: true
-    };
+    this.init = function() {
+        var promise = myFirebase.readFirebase();
 
-    $scope.dateOptions = {
-        dateDisabled: disabled,
-        formatYear: 'yy',
-        maxDate: new Date(2020, 5, 22),
-        minDate: new Date(),
-        startingDay: 1
+            promise.then(function(response){
+                console.log("resolved!",response);
+                mc.myArray = [];
+                mc.myArray = response;
+            }, function(response) {
+                console.log("Error",response);
+            });
     };
 
-    // Disable weekend selection
-    function disabled(data) {
-        var date = data.date,
-            mode = data.mode;
-        return mode === 'day' && (date.getDay() === 0 || date.getDay() === 6);
+    this.formatDateString = function(param){
+        //console.log(param);
+        var date = param.split("-").join("/");
+        var dateOut = new Date(date);
+        //console.log(dateOut);
+        return dateOut;
+    };
+
+    this.addItem = function() {
+        console.log("mc",this.form);
+        myFirebase.addObj(this.form);
+        this.form = {}
+        this.init();
     }
 
-    $scope.toggleMin = function() {
-        $scope.inlineOptions.minDate = $scope.inlineOptions.minDate ? null : new Date();
-        $scope.dateOptions.minDate = $scope.inlineOptions.minDate;
+    this.deleteTask = function(idx) {
+        myFirebase.delObj(idx);
+        this.init();
     };
 
-    $scope.toggleMin();
-
-    $scope.open1 = function() {
-        $scope.popup1.opened = true;
-    };
-
-    $scope.open2 = function() {
-        $scope.popup2.opened = true;
-    };
-
-    $scope.setDate = function(year, month, day) {
-        $scope.dt = new Date(year, month, day);
-    };
-
-    $scope.formats = ['dd-MMMM-yyyy', 'yyyy/MM/dd', 'dd.MM.yyyy', 'shortDate'];
-    $scope.format = $scope.formats[0];
-    $scope.altInputFormats = ['M!/d!/yyyy'];
-
-    $scope.popup1 = {
-        opened: false
-    };
-
-    $scope.popup2 = {
-        opened: false
-    };
-
-    var tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    var afterTomorrow = new Date();
-    afterTomorrow.setDate(tomorrow.getDate() + 1);
-    $scope.events = [
-        {
-            date: tomorrow,
-            status: 'full'
-        },
-        {
-            date: afterTomorrow,
-            status: 'partially'
-        }
-    ];
-
-    function getDayClass(data) {
-        var date = data.date,
-            mode = data.mode;
-        if (mode === 'day') {
-            var dayToCheck = new Date(date).setHours(0,0,0,0);
-
-            for (var i = 0; i < $scope.events.length; i++) {
-                var currentDay = new Date($scope.events[i].date).setHours(0,0,0,0);
-
-                if (dayToCheck === currentDay) {
-                    return $scope.events[i].status;
-                }
-            }
-        }
-
-        return '';
+    this.completeTask = function (idx) {
+        myFirebase.updateObj(idx);
+        this.init();
     }
+
+    this.init();
+});
+
+app.constant('FBURL', 'https://c11todolist.firebaseapp.com');
+
+app.service('Ref', ['FBURL', Firebase]);
+
+app.factory('Todos', function(Ref, $firebase) {
+    return $firebase(Ref).$asArray();
 });

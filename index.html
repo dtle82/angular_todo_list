@@ -7,11 +7,15 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular-animate.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular-sanitize.js"></script>
     <script src="https://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-2.2.0.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/3.6.1/firebase.js"></script>
+    <script src="https://cdn.firebase.com/libs/angularfire/2.3.0/angularfire.min.js"></script>
     <script src="script.js"></script>
+    <script src="firebase.js"></script>
+    <script src="datePicker.js"></script>
 </head>
-<body class="container" ng-app="myTodoList">
+<body class="container" ng-app="myTodoList" ng-controller="mainController as mc">
 <div class="row">
-    <h1>To-Do Task List</h1>
+    <h1>To-Do Task List {{ mc.todos }}</h1>
     <table class="table table-striped">
         <thead>
         <tr>
@@ -22,72 +26,59 @@
         </tr>
         </thead>
         <tbody>
-        <tr>
-            <td>Things to Do 1</td>
-            <td>Progress</td>
-            <td>11/29/2016</td>
-            <td>
-                <button type="button" class="btn btn-danger btn-sm" ng-click="deleteTask()">Delete</button>
-                <button type="button" class="btn btn-success btn-sm" ng-click="completeTask()">Complete</button>
-            </td>
-        </tr>
-        <tr>
-            <td>Things to Do 2</td>
-            <td>Done</td>
-            <td>11/29/2016</td>
-            <td>
-                <button type="button" class="btn btn-danger btn-sm" ng-click="deleteTask()">Delete</button>
-                <button type="button" class="btn btn-success btn-sm" ng-click="completeTask()">Complete</button>
-            </td>
-        </tr>
-        <tr>
-            <td>Things to Do 3</td>
-            <td>Progress</td>
-            <td>11/29/2016</td>
-            <td>
-                <button type="button" class="btn btn-danger btn-sm" ng-click="deleteTask()">Delete</button>
-                <button type="button" class="btn btn-success btn-sm" ng-click="completeTask()">Complete</button>
+        <tr ng-repeat="row in mc.myArray | orderBy:['status','due_date']">
+            <td class="{{ row.status }}">{{ row.task }}</td>
+            <td class="{{ row.status }}">{{ row.status }}</td>
+            <td class="{{ row.status }}">{{ mc.formatDateString(row.due_date) | date : 'fullDate' }} | {{ row.due_date }}</td>
+            <td class="{{ row.status }}">
+                <button type="button" class="btn btn-danger btn-sm" ng-click="mc.deleteTask(row.id)">Delete</button>
+                <button type="button" class="btn btn-success btn-sm" ng-click="mc.completeTask(row.id)">Complete</button>
             </td>
         </tr>
         </tbody>
     </table>
 </div>
 <div class="row">
-    <form>
-        <h1>Add To-Do Task Form</h1>
-        <div class="form-group">
-            <label for="task">Tasks</label>
-            <input type="text" class="form-control" id="task" name="task" placeholder="task">
-        </div>
-        <div class="form-group">
-            <label for="status">Status</label>
-            <input type="text" class="form-control" id="status" name="status" placeholder="status">
-        </div>
-        <div class="form-group" ng-controller="DatepickerPopupDemoCtrl">
-            <label for="due_date">Due Date</label>
-            <div class="input-group">
-                <input type="text" class="form-control" uib-datepicker-popup ng-model="dt" is-open="popup2.opened" datepicker-options="dateOptions" ng-required="true" close-text="Close" />
-                <span class="input-group-btn">
-            <button type="button" id="due_date" class="btn btn-default" ng-click="open2()"><i class="glyphicon glyphicon-calendar"></i></button>
-          </span>
+    <div class="col-xs-6">
+        <form>
+            <h1>Add To-Do Task Form</h1>
+            <div class="form-group">
+                <label for="task">Tasks</label>
+                <input type="text" class="form-control" id="task" name="task" placeholder="task" ng-model="mc.form.task">
             </div>
-        </div>
-        <button type="button" class="btn btn-primary btn-sm" ng-click="addItem()">Add Task</button>
-    </form>
+            <div class="form-group">
+                <label for="status">Status</label>
+                <select class="form-control" ng-model="mc.form.status" ng-options="x for x in mc.statusOptions" id="status">
+                </select>
+            </div>
+            <div class="form-group" ng-controller="DatepickerPopupDemoCtrl">
+                <label for="due_date"></label>
+                <div class="input-group">
+                    <input type="text" class="form-control" uib-datepicker-popup ng-model="mc.form.due_date" is-open="popup2.opened" datepicker-options="dateOptions" ng-required="true" close-text="Close" />
+                    <span class="input-group-btn">
+                <button type="button" id="due_date" class="btn btn-default" ng-click="open2()"><i class="glyphicon glyphicon-calendar"></i></button>
+              </span>
+                </div>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" ng-click="mc.addItem()">Add Task</button>
+        </form>
+    </div>
 </div>
 <div class="row">
-    <form>
-        <h1>Log-in Form</h1>
-        <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" class="form-control" id="username" name="username" placeholder="username">
-        </div>
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="text" class="form-control" id="password" name="password" placeholder="password">
-        </div>
-        <button type="button" class="btn btn-primary btn-sm" ng-click="login()">Log In</button>
-    </form>
+    <div class="col-xs-6">
+        <form>
+            <h1>Log-in Form</h1>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" class="form-control" id="username" name="username" placeholder="username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="text" class="form-control" id="password" name="password" placeholder="password">
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" ng-click="login()">Log In</button>
+        </form>
+    </div>
 </div>
 </body>
 </html>
