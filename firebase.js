@@ -17,8 +17,11 @@ app.service('myFirebase', function($q) {
 
     this.fbArray = [];
 
-    this.readFirebase = function() {
-        return self.fbRef.ref('tasks');
+    this.readFirebase = function(callback) {
+        self.fbRef.ref('tasks').on('value', function(snapshot){
+            self.buildArray(snapshot.val());
+            callback(self.fbArray);
+        });
     };
 
     this.buildArray = function(data){

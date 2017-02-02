@@ -10,19 +10,17 @@ app.controller('mainController', function ($scope, myFirebase) {
     this.event = false;
 
     this.init = function() {
-        myFirebase.readFirebase().on('value', function(snapshot) {
-            mc.update(myFirebase.buildArray(snapshot.val()));
-        });
+        myFirebase.readFirebase(this.update);
     };
 
     this.update = function(data) {
-        if(!this.event) {
+        if(!mc.event) {
             $scope.$apply(function() {
                 mc.myArray = data;
             });
         } else {
             mc.myArray = data;
-            this.event = false;
+            mc.event = false;
         }
     };
 
