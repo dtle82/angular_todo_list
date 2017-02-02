@@ -18,23 +18,21 @@ app.service('myFirebase', function($q) {
     this.fbArray = [];
 
     this.readFirebase = function() {
-        var defer = $q.defer();
+        return self.fbRef.ref('tasks');
+    };
+
+    this.buildArray = function(data){
         self.fbArray = [];
-        self.fbRef.ref('tasks').on('value', function (snapshot) {
-            var obj = snapshot.val();
-            for (var key in obj) {
-                var newObj = {
-                    task: obj[key].task,
-                    status: obj[key].status,
-                        id: key,
-                    due_date: obj[key].due_date
-                }
-                console.log("updated!",newObj);
-                self.fbArray.push(newObj);
-            }
-            defer.resolve(self.fbArray);
-        });
-        return defer.promise;
+        for (var key in data) {
+            var newObj = {
+                task: data[key].task,
+                status: data[key].status,
+                id: key,
+                due_date: data[key].due_date
+            };
+            self.fbArray.push(newObj);
+        }
+        return self.fbArray;
     };
 
     this.returnArray = function () {

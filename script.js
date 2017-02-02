@@ -3,21 +3,27 @@
  */
 var app = angular.module('myTodoList', ['ngAnimate', 'ngSanitize', 'ui.bootstrap', 'firebase']);
 
-app.controller('mainController', function (myFirebase) {
+app.controller('mainController', function ($scope, myFirebase) {
     var mc = this;
     this.myArray = [];
     this.statusOptions = ['Not Started','In-Progress','Complete'];
+    this.event = false;
 
     this.init = function() {
-        var promise = myFirebase.readFirebase();
+        myFirebase.readFirebase().on('value', function(snapshot) {
+            mc.update(myFirebase.buildArray(snapshot.val()));
+        });
+    };
 
-            promise.then(function(response){
-                console.log("resolved!",response);
-                mc.myArray = [];
-                mc.myArray = response;
-            }, function(response) {
-                console.log("Error",response);
+    this.update = function(data) {
+        if(!this.event) {
+            $scope.$apply(function() {
+                mc.myArray = data;
             });
+        } else {
+            mc.myArray = data;
+            this.event = false;
+        }
     };
 
     this.formatDateString = function(param){
@@ -29,21 +35,21 @@ app.controller('mainController', function (myFirebase) {
     };
 
     this.addItem = function() {
+        this.event = true;
         console.log("mc",this.form);
         myFirebase.addObj(this.form);
-        this.form = {}
-        this.init();
-    }
+        this.form = {};
+    };
 
     this.deleteTask = function(idx) {
+        this.event = true;
         myFirebase.delObj(idx);
-        this.init();
     };
 
     this.completeTask = function (idx) {
+        this.event = true;
         myFirebase.updateObj(idx);
-        this.init();
-    }
+    };
 
     this.init();
 });
