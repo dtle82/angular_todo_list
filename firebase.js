@@ -24,13 +24,15 @@ app.service('myFirebase', function($q) {
     this.buildArray = function(data){
         self.fbArray = [];
         for (var key in data) {
-            var newObj = {
-                task: data[key].task,
-                status: data[key].status,
-                id: key,
-                due_date: data[key].due_date
-            };
-            self.fbArray.push(newObj);
+            if(data.hasOwnProperty(key)){
+                var newObj = {
+                    task: data[key].task,
+                    status: data[key].status,
+                    id: key,
+                    due_date: data[key].due_date
+                };
+                self.fbArray.push(newObj);
+            }
         }
         return self.fbArray;
     };
